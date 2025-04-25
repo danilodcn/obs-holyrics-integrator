@@ -1,0 +1,39 @@
+[project]
+name = "obs"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Danilo Nascimento",email = "daconnas.dcn@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.12,<4.0"
+dependencies = [
+    "ipdb (>=0.13.13,<0.14.0)",
+    "requests (>=2.32.3,<3.0.0)",
+    "ttkthemes (>=3.2.2,<4.0.0)",
+    "taskipy (>=1.14.1,<2.0.0)",
+    "pytest (>=8.3.5,<9.0.0)",
+    "watchdog (>=6.0.0,<7.0.0)"
+]
+
+[tool.poetry]
+packages = [{include = "obs"}]
+
+
+[tool.poetry.group.dev.dependencies]
+blue = "^0.9.1"
+isort = "^6.0.1"
+watchfiles = "^1.0.5"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.taskipy.settings]
+runner = "poetry run"
+
+[tool.taskipy.tasks]
+dev = "python obs/main.py"
+test = "unittest ."
+lint = "blue . --check --diff && isort . --check --diff"
+format = "isort . && blue ."

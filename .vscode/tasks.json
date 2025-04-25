@@ -1,0 +1,18 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Run with Watchfiles",
+      "type": "shell",
+      "command": "poetry",
+      "args": [
+        "run",
+        "watchfiles",
+        "--",
+        "'poetry run python obs/main.py'"
+      ],
+      "problemMatcher": [],
+      "isBackground": false
+    }
+  ]
+}

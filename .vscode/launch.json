@@ -1,0 +1,17 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Python: Hot Reload",
+        "type": "debugpy",
+        "request": "launch",
+        "module": "watchfiles",
+        "args": [
+          "--",
+          "poetry run python obs/main.py"
+        ],
+        "console": "integratedTerminal"
+      }
+    ]
+  }
+  
