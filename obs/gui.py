@@ -23,9 +23,13 @@ def create_gui(message_bus: queue.Queue) -> tk.Tk:
     root.configure(padx=PADDING_X, pady=PADDING_Y)
 
     # Input variables
-    obs_host_var: tk.StringVar = tk.StringVar()
-    holyrics_host_var: tk.StringVar = tk.StringVar()
+    obs_host_var = tk.StringVar()
+    holyrics_host_var = tk.StringVar()
     profile_name_var = tk.StringVar()
+    
+    principal_scene_name_var = tk.StringVar()
+    holyrics_scene_name_var = tk.StringVar()
+    holyrics_source_name_var = tk.StringVar()
 
     profiles_data = load_profiles()
     profile_names = list(profiles_data['profiles'].keys())
@@ -36,6 +40,9 @@ def create_gui(message_bus: queue.Queue) -> tk.Tk:
         profile = get_profile(profile_name_var.get())
         obs_host_var.set(profile.get('obs', ''))
         holyrics_host_var.set(profile.get('holyrics', ''))
+        principal_scene_name_var.set(profile.get('principal_scene', ''))
+        holyrics_scene_name_var.set(profile.get('holyrics_scene', ''))
+        holyrics_source_name_var.set(profile.get('holyrics_source', ''))
 
     def on_save_profile():
         name = profile_name_var.get()
@@ -43,6 +50,9 @@ def create_gui(message_bus: queue.Queue) -> tk.Tk:
         data = {
             'obs': obs_host_var.get(),
             'holyrics': holyrics_host_var.get(),
+            'principal_scene': principal_scene_name_var.get(),
+            'holyrics_scene': holyrics_scene_name_var.get(),
+            'holyrics_source': holyrics_source_name_var.get(),
         }
         save_profile(name, data)
         if name not in profile_names:
@@ -71,6 +81,28 @@ def create_gui(message_bus: queue.Queue) -> tk.Tk:
     __create_host_row(
         message_bus, root, 'Holyrics Host:', 4, 1, holyrics_host_var
     )
+    
+    # Cenes names
+    ttk.Label(root, text="Principal Scene:").grid(
+        row=5, column=0, sticky='w'
+    )
+    ttk.Entry(
+        root, textvariable=principal_scene_name_var, width=ENTRY_WIDTH
+    ).grid(row=5, column=1)
+    
+    ttk.Label(root, text="Holyrics Scene:").grid(
+        row=6, column=0, sticky='w'
+    )
+    ttk.Entry(
+        root, textvariable=holyrics_scene_name_var, width=ENTRY_WIDTH
+    ).grid(row=6, column=1)
+    
+    ttk.Label(root, text="Holyrics Source:").grid(
+        row=7, column=0, sticky='w'
+    )
+    ttk.Entry(
+        root, textvariable=holyrics_source_name_var, width=ENTRY_WIDTH
+    ).grid(row=7, column=1)
 
     ttk.Button(
         root,
@@ -78,7 +110,7 @@ def create_gui(message_bus: queue.Queue) -> tk.Tk:
         command=lambda: enqueue_start_server(
             message_bus, obs_host_var, holyrics_host_var
         ),
-    ).grid(row=5, column=1, pady=20)
+    ).grid(row=8, column=1, pady=20)
 
     # Start message loop
     root.after(100, start_worker_thread, message_bus)
