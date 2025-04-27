@@ -14,7 +14,8 @@ dependencies = [
     "taskipy (>=1.14.1,<2.0.0)",
     "pytest (>=8.3.5,<9.0.0)",
     "watchdog (>=6.0.0,<7.0.0)",
-    "obsws-python (>=1.7.1,<2.0.0)"
+    "obsws-python (>=1.7.1,<2.0.0)",
+    "httpx (>=0.28.1,<0.29.0)"
 ]
 
 [tool.poetry]

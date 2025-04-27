@@ -1,4 +1,5 @@
 import queue
+import threading
 import tkinter as tk
 from dataclasses import dataclass
 from enum import Enum
@@ -6,6 +7,9 @@ from tkinter import messagebox
 from typing import Any, Callable
 
 import requests
+
+from obs.integrator_bridge import HolyricsOBSBridge
+from obs.integrator_controller import HolyricsOBSController
 
 
 # Enums
@@ -77,17 +81,63 @@ def handle_host_verify(context: dict[str, Any]) -> None:
         )
 
 
+controller: HolyricsOBSController | None = None
+
+
 def handle_start_server(context: dict[str, Any]) -> None:
-    obs = context.get('obs')
-    holyrics = context.get('holyrics')
-    print(f'Starting with OBS: {obs} | Holyrics: {holyrics}')
+    global controller
+    obs_host = context.get('obs_host')
+    holyrics_host = context.get('holyrics_host')
+    principal_scene = context.get('principal_scene', '')
+    holyrics_scene = context.get('holyrics_scene', '')
+
+    # validate inputs
+    if (
+        not obs_host
+        or not holyrics_host
+        and not principal_scene
+        and not holyrics_scene
+    ):
+        message_bus.put(
+            Message(
+                type=MessageType.SHOW_MESSAGE,
+                context={
+                    'kind': MessageKind.ERROR.value,
+                    'title': 'Error',
+                    'message': 'Invalid input parameters.',
+                },
+            )
+        )
+        return
+
+    print(f'Starting with OBS: {obs_host} | Holyrics: {holyrics_host}')
+
+    if controller is not None and controller.is_running():
+        controller.stop()
+        message_bus.put(
+            Message(
+                type=MessageType.SHOW_MESSAGE,
+                context={
+                    'kind': MessageKind.INFO.value,
+                    'title': 'Stopping server...',
+                    'message': 'The server is stopping.',
+                },
+            )
+        )
+        return
+
+    bridge = HolyricsOBSBridge(
+        obs_host, holyrics_host, principal_scene, holyrics_scene
+    )
+    controller = HolyricsOBSController(bridge)
+    controller.start()
     message_bus.put(
         Message(
             type=MessageType.SHOW_MESSAGE,
             context={
                 'kind': MessageKind.INFO.value,
                 'title': 'Started',
-                'message': 'Process started with the provided hosts.',
+                'message': 'Process started is running.',
             },
         )
     )

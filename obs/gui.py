@@ -7,7 +7,12 @@ from tkinter import ttk
 from profile_manager import get_profile, load_profiles, save_profile
 from ttkthemes import ThemedTk
 
-from obs.message_bus import Message, MessageKind, MessageType, process_pending_messages
+from obs.message_bus import (
+    Message,
+    MessageKind,
+    MessageType,
+    process_pending_messages,
+)
 
 # Constants
 PADDING_X: int = 10
@@ -26,10 +31,9 @@ def create_gui(message_bus: queue.Queue) -> tk.Tk:
     obs_host_var = tk.StringVar()
     holyrics_host_var = tk.StringVar()
     profile_name_var = tk.StringVar()
-    
+
     principal_scene_name_var = tk.StringVar()
     holyrics_scene_name_var = tk.StringVar()
-    holyrics_source_name_var = tk.StringVar()
 
     profiles_data = load_profiles()
     profile_names = list(profiles_data['profiles'].keys())
@@ -42,7 +46,6 @@ def create_gui(message_bus: queue.Queue) -> tk.Tk:
         holyrics_host_var.set(profile.get('holyrics', ''))
         principal_scene_name_var.set(profile.get('principal_scene', ''))
         holyrics_scene_name_var.set(profile.get('holyrics_scene', ''))
-        holyrics_source_name_var.set(profile.get('holyrics_source', ''))
 
     def on_save_profile():
         name = profile_name_var.get()
@@ -52,7 +55,6 @@ def create_gui(message_bus: queue.Queue) -> tk.Tk:
             'holyrics': holyrics_host_var.get(),
             'principal_scene': principal_scene_name_var.get(),
             'holyrics_scene': holyrics_scene_name_var.get(),
-            'holyrics_source': holyrics_source_name_var.get(),
         }
         save_profile(name, data)
         if name not in profile_names:
@@ -81,34 +83,27 @@ def create_gui(message_bus: queue.Queue) -> tk.Tk:
     __create_host_row(
         message_bus, root, 'Holyrics Host:', 4, 1, holyrics_host_var
     )
-    
+
     # Cenes names
-    ttk.Label(root, text="Principal Scene:").grid(
-        row=5, column=0, sticky='w'
-    )
+    ttk.Label(root, text='Principal Scene:').grid(row=5, column=0, sticky='w')
     ttk.Entry(
         root, textvariable=principal_scene_name_var, width=ENTRY_WIDTH
     ).grid(row=5, column=1)
-    
-    ttk.Label(root, text="Holyrics Scene:").grid(
-        row=6, column=0, sticky='w'
-    )
+
+    ttk.Label(root, text='Holyrics Scene:').grid(row=6, column=0, sticky='w')
     ttk.Entry(
         root, textvariable=holyrics_scene_name_var, width=ENTRY_WIDTH
     ).grid(row=6, column=1)
-    
-    ttk.Label(root, text="Holyrics Source:").grid(
-        row=7, column=0, sticky='w'
-    )
-    ttk.Entry(
-        root, textvariable=holyrics_source_name_var, width=ENTRY_WIDTH
-    ).grid(row=7, column=1)
 
     ttk.Button(
         root,
         text='Start',
         command=lambda: enqueue_start_server(
-            message_bus, obs_host_var, holyrics_host_var
+            message_bus,
+            obs_host_var,
+            holyrics_host_var,
+            principal_scene_name_var,
+            holyrics_scene_name_var,
         ),
     ).grid(row=8, column=1, pady=20)
 
@@ -120,28 +115,31 @@ def create_gui(message_bus: queue.Queue) -> tk.Tk:
         on_profile_change()
     return root
 
+
 def start_worker_thread(message_bus: queue.Queue) -> None:
     worker_thread = threading.Thread(
-        target=process_message_bus, args=(message_bus,), daemon=True,
+        target=process_message_bus,
+        args=(message_bus,),
+        daemon=True,
     )
     worker_thread.start()
 
 
 def process_message_bus(message_bus: queue.Queue) -> None:
     while True:
-        try: 
+        try:
             process_pending_messages()
             time.sleep(0.1)
         except Exception as e:
-            print(f"Error in process_message_bus: {e}")
+            print(f'Error in process_message_bus: {e}')
             message_bus.put(
                 Message(
                     type=MessageType.SHOW_MESSAGE,
                     context={
-                    'kind': MessageKind.ERROR.value,
-                    'title': 'Host OK',
-                    'message': f'error: {e}',
-                },
+                        'kind': MessageKind.ERROR.value,
+                        'title': 'Host OK',
+                        'message': f'error: {e}',
+                    },
                 )
             )
             time.sleep(1)
@@ -164,13 +162,20 @@ def enqueue_start_server(
     message_bus: queue.Queue,
     obs_host_var: tk.StringVar,
     holyrics_host_var: tk.StringVar,
+    principal_scene_name_var: tk.StringVar,
+    holyrics_scene_name_var: tk.StringVar,
 ) -> None:
-    obs = obs_host_var.get().strip()
-    holyrics = holyrics_host_var.get().strip()
+    obs_host = obs_host_var.get().strip()
+    holyrics_host = holyrics_host_var.get().strip()
     message_bus.put(
         Message(
             type=MessageType.START_SERVER,
-            context={'obs': obs, 'holyrics': holyrics},
+            context={
+                'obs_host': obs_host,
+                'holyrics_host': holyrics_host,
+                'principal_scene': principal_scene_name_var.get(),
+                'holyrics_scene': holyrics_scene_name_var.get(),
+            },
         )
     )
 
