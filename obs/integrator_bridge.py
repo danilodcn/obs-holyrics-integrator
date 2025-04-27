@@ -33,9 +33,6 @@ class HolyricsOBSBridge(BaseHolyricsOBSBridge):
         self.obs_client = obs.ReqClient(
             host=obs_host_hostname, port=obs_host_port, password=''
         )
-        import ipdb
-
-        ipdb.set_trace()  # noqa: E701
 
     def _has_holyrics_text(self) -> bool:
         """
@@ -105,7 +102,6 @@ class HolyricsOBSBridge(BaseHolyricsOBSBridge):
             print('\n🛑 Stopped by user.')
         except Exception as e:
             print(f'❌ Error: {e}')
-            raise e
         finally:
             self.obs_client.disconnect()
             print('🔌 OBS connection closed.')
